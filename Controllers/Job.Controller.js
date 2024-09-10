@@ -1,6 +1,6 @@
 const Job = require("../models/Job.Model");
 const Signer = require("../models/Signer.Model");
-
+const sendEmail = require("../utils/emailUtil");
 const createJob = async (req, res) => {
   try {
     const {
@@ -13,7 +13,7 @@ const createJob = async (req, res) => {
       propertyCity,
       propertyState,
       propertyZipCode,
-      signers,
+      signers, // This should be a JSON string
       notaryOption,
       selectedNotary,
       selectedDate,
@@ -33,8 +33,8 @@ const createJob = async (req, res) => {
     }
 
     // Check if signers is an array
-    if (!Array.isArray(signersArray)) {
-      throw new Error("Signers should be an array");
+    if (!Array.isArray(signersArray) || signersArray.length === 0) {
+      throw new Error("Signers should be a non-empty array");
     }
 
     const uploadedFile = req.file ? `/uploads/${req.file.filename}` : null; // Relative URL
@@ -67,6 +67,26 @@ const createJob = async (req, res) => {
       JobStatus,
     });
 
+    // Send email to all signers
+    for (const signer of signersArray) {
+      const email = signer.signerEmail; // Update this to use the correct field name
+
+      if (email) {
+        await sendEmail(
+          email,
+          "Job Created Notification",
+          "A new job has been created. Please check your details.",
+          `<p>Hey ${signer.signerName},</p>
+           <p>A new job has been created and you are listed as a ${signer.signerRole}. Please check your details.</p>
+           <p>Your contact number: ${signer.signerPhoneNumber}</p>
+           <p>Thank you,</p>
+           <p>The Notary Team</p>`
+        );
+      } else {
+        console.error("Signer email is missing:", signer);
+      }
+    }
+
     res
       .status(201)
       .json({ newJob: newJob, message: "Job Created successfully" });
@@ -78,10 +98,10 @@ const createJob = async (req, res) => {
 
 const getRoleBasedJobs = async (req, res) => {
   try {
-    const userRole = req.user.role;  
-    const userId = req.user.userId;  
+    const userRole = req.user.role;
+    const userId = req.user.userId;
 
-    console.log("user rOLE role",userRole, userId);
+    console.log("user rOLE role", userRole, userId);
 
     let jobs;
 
@@ -102,7 +122,48 @@ const getRoleBasedJobs = async (req, res) => {
   }
 };
 
+const getJobsById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const job = await Job.findById(id).populate("signers");
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+    res.status(200).json({ job });
+  } catch (error) {
+    console.error("Error fetching job:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+const updateJobStatus = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { JobStatus } = req.body; // Expect the new status in the request body
+
+    const validStatuses = ["Pending", "Cancelled", "Accepted","Completed"];
+    if (!validStatuses.includes(JobStatus)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+
+    // Find and update the job status
+    const job = await Job.findByIdAndUpdate(id, { JobStatus }, { new: true });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res
+      .status(200)
+      .json({ message: "Job Status Changes Successfully", job: job });
+  } catch (error) {
+    console.error("Error updating job status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 module.exports = {
   createJob,
   getRoleBasedJobs,
+  getJobsById,
+  updateJobStatus,
 };
