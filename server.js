@@ -3,7 +3,6 @@ const connectDB = require("./database/db");
 const path = require("path");
 var corsOptions = require("./Middleware/Cors.Middleware");
 const app = express();
-const port = 3000;
 // Middleware to parse JSON
 app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
@@ -41,6 +40,5 @@ app.use(JOB_ROUTE_PATH, require("./routes/Job.Route"));
 // COMPANY apis
 app.use(COMPANY_ROUTE_PATH, require("./routes/Company.Route"));
 
-app.listen(port, () => {
-  console.log(`Example app listening on port ${port}`);
-});
+const port = process.env.PORT || 3000; // Change to a different port
+app.listen(port, () => console.log(`Server running on port ${port}`));
