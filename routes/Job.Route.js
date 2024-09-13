@@ -6,6 +6,7 @@ const {
   getRoleBasedJobs,
   getJobsById,
   updateJobStatus,
+  updateJobFileandStatus,
 } = require("../Controllers/Job.Controller");
 const upload = require("../Middleware/Multer.Middleware");
 const verifyToken = require("../Middleware/Auth.Middleware");
@@ -15,6 +16,13 @@ router.post("/createjob", upload.single("uploadedFile"), createJob);
 
 // @route   POST /api/v1/jobs/:id/updateJobStatus
 router.post("/:id/updatejobstatus", updateJobStatus);
+
+// @route   POST /api/v1/jobs/:id/updateJobFileandStatus
+router.post(
+  "/:id/updatejobfileandstatus",
+  upload.single("notarizedFile"),
+  updateJobFileandStatus
+);
 
 // @route   GET /api/v1/jobs/getjobs
 router.get("/getjobs", verifyToken, getRoleBasedJobs);

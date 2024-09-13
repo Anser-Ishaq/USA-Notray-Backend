@@ -16,6 +16,10 @@ const jobSchema = new mongoose.Schema({
     selectedDate: Date,
     selectedTime: String,
     uploadedFile: String,
+    notarizedFile: {
+        type: String,
+        default: null
+      },
     userId: String,
     JobStatus: String,
 }, { timestamps: true });

@@ -20,6 +20,7 @@ const createJob = async (req, res) => {
       selectedTime,
       userId,
       JobStatus,
+      notarizedFile
     } = req.body;
 
     console.log("File upload info:", req.file);
@@ -65,6 +66,7 @@ const createJob = async (req, res) => {
       uploadedFile,
       userId,
       JobStatus,
+      notarizedFile
     });
 
     // Send email to all signers
@@ -156,7 +158,35 @@ const updateJobStatus = async (req, res) => {
       .status(200)
       .json({ message: "Job Status Changes Successfully", job: job });
   } catch (error) {
-    console.error("Error updating job status:", error);
+    // console.error("Error updating job status:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
+
+
+
+const updateJobFileandStatus =  async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { JobStatus } = req.body;
+    const notarizedFile = req.file ? `/uploads/${req.file.filename}` : null;
+
+    const validStatuses = ["Pending", "Cancelled", "Accepted", "Completed"];
+    if (!validStatuses.includes(JobStatus)) {
+      return res.status(400).json({ message: "Invalid status value" });
+    }
+    
+
+    // Find and update the job status and file
+    const job = await Job.findByIdAndUpdate(id, { JobStatus, notarizedFile }, { new: true });
+    if (!job) {
+      return res.status(404).json({ message: "Job not found" });
+    }
+
+    res.status(200).json({ message: "Job updated successfully", job: job });
+  } catch (error) {
+    console.error("Error updating job:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 };
@@ -166,4 +196,5 @@ module.exports = {
   getRoleBasedJobs,
   getJobsById,
   updateJobStatus,
+  updateJobFileandStatus
 };
