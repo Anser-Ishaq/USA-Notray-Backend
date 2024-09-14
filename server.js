@@ -1,7 +1,9 @@
 const express = require("express");
 const connectDB = require("./database/db");
 const path = require("path");
-var corsOptions = require("./Middleware/Cors.Middleware");
+// var corsOptions = require("./Middleware/Cors.Middleware");
+const cors = require('cors');
+
 const app = express();
 // Middleware to parse JSON
 app.use(express.json());
@@ -11,7 +13,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 connectDB();
 
 // Enable CORS for all routes
-app.use(corsOptions);
+app.use(cors());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Define route paths in variables
