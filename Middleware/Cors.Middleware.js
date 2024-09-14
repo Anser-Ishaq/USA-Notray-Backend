@@ -1,7 +1,12 @@
 // middlewares/corsMiddleware.js
-const cors = require('cors');
+const cors = require("cors");
 
-const allowedOrigins = ['http://localhost:5173', 'http://localhost:5174'];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://usa-frontend.netlify.app",
+  "https://usa-editor.netlify.app",
+  "http://localhost:5174",
+];
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -9,11 +14,11 @@ const corsOptions = {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("Not allowed by CORS"));
     }
   },
-  methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE'],
-  allowedHeaders: '*',
+  methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE"],
+  allowedHeaders: "*",
   credentials: true,
   optionSuccessStatus: 200,
 };
