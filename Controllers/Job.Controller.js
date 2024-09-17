@@ -20,7 +20,7 @@ const createJob = async (req, res) => {
       selectedTime,
       userId,
       JobStatus,
-      notarizedFile
+      notarizedFile,
     } = req.body;
 
     console.log("File upload info:", req.file);
@@ -66,7 +66,7 @@ const createJob = async (req, res) => {
       uploadedFile,
       userId,
       JobStatus,
-      notarizedFile
+      notarizedFile,
     });
 
     // Send email to all signers
@@ -102,17 +102,21 @@ const getRoleBasedJobs = async (req, res) => {
   try {
     const userRole = req.user.role;
     const userId = req.user.userId;
+    const userName = req.user.userName;
 
-    console.log("user rOLE role", userRole, userId);
+    console.log("user rOLE role userName", userRole, userId,userName);
 
     let jobs;
 
     if (userRole === "Admin Users") {
-      // Fetch all jobs and populate signers
       jobs = await Job.find().populate("signers");
     } else if (userRole === "Notary Users") {
-      // Fetch jobs for a specific user and populate signers
-      jobs = await Job.find({ userId: userId }).populate("signers");
+      jobs = await Job.find({
+        $or: [
+          { userId: userId },
+          { selectedNotary: userName },
+        ],
+      }).populate("signers");
     } else {
       return res.status(403).json({ message: "Access denied" });
     }
@@ -143,7 +147,7 @@ const updateJobStatus = async (req, res) => {
     const { id } = req.params;
     const { JobStatus } = req.body; // Expect the new status in the request body
 
-    const validStatuses = ["Pending", "Cancelled", "Accepted","Completed"];
+    const validStatuses = ["Pending", "Cancelled", "Accepted", "Completed"];
     if (!validStatuses.includes(JobStatus)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
@@ -163,10 +167,7 @@ const updateJobStatus = async (req, res) => {
   }
 };
 
-
-
-
-const updateJobFileandStatus =  async (req, res) => {
+const updateJobFileandStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { JobStatus } = req.body;
@@ -176,10 +177,13 @@ const updateJobFileandStatus =  async (req, res) => {
     if (!validStatuses.includes(JobStatus)) {
       return res.status(400).json({ message: "Invalid status value" });
     }
-    
 
     // Find and update the job status and file
-    const job = await Job.findByIdAndUpdate(id, { JobStatus, notarizedFile }, { new: true });
+    const job = await Job.findByIdAndUpdate(
+      id,
+      { JobStatus, notarizedFile },
+      { new: true }
+    );
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
     }
@@ -196,5 +200,5 @@ module.exports = {
   getRoleBasedJobs,
   getJobsById,
   updateJobStatus,
-  updateJobFileandStatus
+  updateJobFileandStatus,
 };

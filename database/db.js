@@ -1,10 +1,9 @@
-// database/db.js
+require("dotenv").config();
 const mongoose = require("mongoose");
 
 // MongoDB connection URL
 // const mongoURI = 'mongodb://localhost:27017/USA_Notary';
-const mongoURI =
-  "mongodb+srv://aabanatif5:kzIJaKjE3RNjPeAD@usanotary.bomzl.mongodb.net/USA_Notary";
+const mongoURI = process.env.MONGO_URL;
 
 const connectDB = async () => {
   try {

@@ -21,7 +21,7 @@ const loginUser = async (req, res) => {
 
     // Generate JWT token since the user exists and the password matches
     const token = jwt.sign(
-      { userId: user._id, email: user.email, role: user.role },
+      { userId: user._id, email: user.email, role: user.role, userName: user.username },
       "8adb2800f5919d341a7cd25702cc02745e7759390b2c3332bcaf1e0c6cd268b7",
       { expiresIn: "1d" }
     );
