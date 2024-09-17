@@ -43,6 +43,8 @@ const UserSchema = new mongoose.Schema({
     enum: ROLES,
     required: true,
   },
+  label:String,
+  value:String,
   privileges: [
     {
       type: String,
